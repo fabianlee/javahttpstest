@@ -1,0 +1,184 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.fabianlee</groupId>
+  <artifactId>javahttpstest</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>  
+
+	<properties>
+		<java-version>1.8</java-version>
+		<jdk.version>1.8</jdk.version>
+		<org.slf4j-version>1.7.7</org.slf4j-version>
+		<log4j-version>1.2.17</log4j-version>
+		<!-- http://www.bouncycastle.org/wiki/display/JA1/Porting+from+earlier+BC+releases+to+1.47+and+later  -->
+		<!--  1.47 and 1.59 had compile errors because changes -->
+		<bouncycastle-version>1.59</bouncycastle-version>
+		<maven-shade-version>3.1.0</maven-shade-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<dependencies>
+		<!-- logging facade using log4j -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j-version}</version>
+		</dependency>
+	
+
+		<!-- junit testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+
+		<!-- bouncycastle security libraries for decoding certs -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>${bouncycastle-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcmail-jdk15on</artifactId>
+			<version>${bouncycastle-version}</version>
+		</dependency>
+
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>false</showWarnings>
+					<showDeprecation>false</showDeprecation>
+				</configuration>
+			</plugin>
+			
+			<!-- mvn exec:java -Dexec.mainClass=javahttpstest.TestHTTPS -DURL=https://mydomain.com -DskipTests=true -->
+			<!-- java  -DURL=https://mydomain.com -jar javahttpstest-0.0.1-SNAPSHOT.jar -->
+			<!-- mvn test -DURL=https://mydomain.com -->
+			
+			<!-- mvn test -DURL=https://mydomain.com -Djavax.net.ssl.trustStore=/home/fabian/Documents/javahttpstest/src/main/resources/keystore.jks2 -->
+			<!-- java     -DURL=https://mydomain.com -Djavax.net.ssl.trustStore=/home/fabian/Documents/javahttpstest/src/main/resources/keystore.jks -jar javahttpstest-0.0.1-SNAPSHOT.jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>javahttpstest.TestHTTPS</Main-Class>
+										<Build-Number>1</Build-Number>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+							
+							<!--
+							Need to exclude signatures coming from bouncycastle or you get error below
+							java.lang.SecurityException: Invalid signature file digest for Manifest main attributes 
+							https://stackoverflow.com/questions/17658831/how-can-i-exclude-dsa-and-sf-files-from-shaded-jar  
+							-->
+							<filters>
+							<filter>
+								<!-- groupId:artifactId:type:classifier -->
+								<artifact>org.bouncycastle:*:*:*</artifact>
+								<excludes>
+									<exclude>META-INF/*.SF</exclude>
+									<exclude>META-INF/*.DSA</exclude>
+									<exclude>META-INF/*.RSA</exclude>
+								</excludes>
+							</filter>
+							</filters>	
+													
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>		
+			
+	</plugins>
+	
+	<pluginManagement>
+		<plugins>
+		
+			<plugin>
+				<groupId>org.eclipse.m2e</groupId>
+				<artifactId>lifecycle-mapping</artifactId>
+				<version>1.0.0</version>
+				<configuration>
+					<lifecycleMappingMetadata>
+						<pluginExecutions>
+							<pluginExecution>
+								<pluginExecutionFilter>
+									<groupId>
+										org.apache.maven.plugins
+									</groupId>
+									<artifactId>
+										maven-antrun-plugin
+									</artifactId>
+									<versionRange>
+										[1.7,)
+									</versionRange>
+									<goals>
+										<goal>run</goal>
+									</goals>
+								</pluginExecutionFilter>
+								<action>
+									<ignore></ignore>
+								</action>
+							</pluginExecution>
+							<pluginExecution>
+								<pluginExecutionFilter>
+									<groupId>
+										org.apache.maven.plugins
+									</groupId>
+									<artifactId>
+										maven-dependency-plugin
+									</artifactId>
+									<versionRange>
+										[2.5.1,)
+									</versionRange>
+									<goals>
+										<goal>
+											copy-dependencies
+										</goal>
+									</goals>
+								</pluginExecutionFilter>
+								<action>
+									<ignore></ignore>
+								</action>
+							</pluginExecution>
+						</pluginExecutions>
+					</lifecycleMappingMetadata>
+				</configuration>
+			</plugin>
+		</plugins>
+	</pluginManagement>
+	
+  </build>	
+  
+</project>
