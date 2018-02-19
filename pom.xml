@@ -72,12 +72,6 @@
 				</configuration>
 			</plugin>
 			
-			<!-- mvn exec:java -Dexec.mainClass=javahttpstest.TestHTTPS -DURL=https://mydomain.com -DskipTests=true -->
-			<!-- java  -DURL=https://mydomain.com -jar javahttpstest-0.0.1-SNAPSHOT.jar -->
-			<!-- mvn test -DURL=https://mydomain.com -->
-			
-			<!-- mvn test -DURL=https://mydomain.com -Djavax.net.ssl.trustStore=/home/fabian/Documents/javahttpstest/src/main/resources/keystore.jks2 -->
-			<!-- java     -DURL=https://mydomain.com -Djavax.net.ssl.trustStore=/home/fabian/Documents/javahttpstest/src/main/resources/keystore.jks -jar javahttpstest-0.0.1-SNAPSHOT.jar -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
